@@ -2,6 +2,9 @@ module.exports = function(grunt) {
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+        srcFiles: [
+            'src/angular-pageslide-directive.js'
+        ],
         concat: {
             dist :{
                 src: ['src/*.js'],
@@ -15,9 +18,9 @@ module.exports = function(grunt) {
             options: {
                 banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
             },
-            dist: {
-                src: 'dist/<%= pkg.name %>.js',
-                dest: 'dist/<%= pkg.name %>.min.js'
+            build: {
+                src: ['<%= srcFiles %>'],
+                dest: 'build/<%= pkg.name %>.min.js'
             }
         }
     });
