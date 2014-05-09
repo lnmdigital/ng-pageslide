@@ -22,7 +22,6 @@ pageslideDirective.directive('pageslide', [
                 param.side = attrs.pageslide || 'right';
                 param.speed = attrs.psSpeed || '0.5';
                 param.size = attrs.psSize || '300px';
-                param.className = attrs.psClass || 'ng-pageslide';
 
                 /* DOM manipulation */
                 //console.log(el);
@@ -30,23 +29,27 @@ pageslideDirective.directive('pageslide', [
                 if (el.children() && el.children().length) {
                     content = el.children()[0];  
                 } else {
-                    content = (attrs.href) ? document.getElementById(attrs.href.substr(1)) : document.getElementById(attrs.psTarget.substr(1));
+                    content = document.getElementById(attrs.psTarget.substr(1));
                 }
                 //console.log(content);
                 // Check for content
                 if (!content) 
                     throw new Error('You have to elements inside the <pageslide> or you have not specified a target href');
                 var slider = document.createElement('div');
-                slider.className = param.className;
+                slider.className = "ng-pageslide";
 
                 /* Style setup */
                 slider.style.transitionDuration = param.speed + 's';
                 slider.style.webkitTransitionDuration = param.speed + 's';
-                slider.style.zIndex = 1000;
+                slider.style.zIndex = 3000;
                 slider.style.position = 'fixed';
                 slider.style.width = 0;
                 slider.style.height = 0;
                 slider.style.transitionProperty = 'width, height';
+                slider.style.boxShadow = '0px 0px 8px #444444';
+                
+                content.style.whiteSpace = 'nowrap';
+                content.style.display = 'block';
 
                 switch (param.side){
                     case 'right':
@@ -83,7 +86,7 @@ pageslideDirective.directive('pageslide', [
                 /* Closed */
                 function psClose(slider,param){
                     if (slider.style.width !== 0 && slider.style.width !== 0){
-                        content.style.display = 'none';
+                        //content.style.display = 'none';
                         switch (param.side){
                             case 'right':
                                 slider.style.width = '0px'; 
@@ -118,71 +121,100 @@ pageslideDirective.directive('pageslide', [
                                 slider.style.height = param.size; 
                                 break;
                         }
-                        setTimeout(function(){
-                            content.style.display = 'block';
-                        },(param.speed * 1000));
+//                        setTimeout(function(){
+//                            //content.style.display = 'block';
+//                        },(param.speed * 1000));
 
                     }
+                }
+                
+                function isOpen() {
+                    var _isOpen = false;
+                    
+                    switch (param.side){
+                        case 'right':
+                        case 'left':
+                            _isOpen = !slider.style.width.match(/^0/); 
+                            break;
+                        case 'top':
+                        case 'bottom':
+                            _isOpen = !slider.style.height.match(/^0/); 
+                            break;
+                    }
+                    
+                    return _isOpen;
                 }
 
                 /*
                 * Watchers
                 * */
+                $scope.$watch(function(){
+                    return el.attr('ps-size');
+                }, function (value) {
+                    if (!value.match(/^0/)) {
+                        param.size = value;
 
-                $scope.$watch(attrs.psOpen, function (value){
-                    if (!!value) {
+                        if (isOpen()) {
+                            psOpen(slider, param);
+                        }
+                    }
+                });
+                
+                $scope.$watch(function() {
+                    return el.attr('ps-open');
+                }, function (value){
+                    
+                    if (value === 'true' || value === true) {
                         // Open
                         psOpen(slider,param);
                     } else {
                         // Close
                         psClose(slider,param);
                     }
-                });
+                }, true);
 
                 // close panel on location change
-                if(attrs.psAutoClose){
-                    $scope.$on("$locationChangeStart", function(){
-                        psClose(slider, param);
-                    });
-                    $scope.$on("$stateChangeStart", function(){
+                if(attrs.pSAutoClose){
+                    $scope.$on("$locationchangestart", function(){
                         psClose(slider, param);
                     });
                 }
 
                
 
-                /*
-                * Events
-                * */
-                var close_handler = (attrs.href) ? document.getElementById(attrs.href.substr(1) + '-close') : null;
-                if (el[0].addEventListener) {
-                    el[0].addEventListener('click',function(e){
-                        e.preventDefault();
-                        psOpen(slider,param);                    
-                    });
-
-                    if (close_handler){
-                        close_handler.addEventListener('click', function(e){
-                            e.preventDefault();
-                            psClose(slider,param);
-                        });
-                    }
-                } else {
-                    // IE8 Fallback code
-                    el[0].attachEvent('onclick',function(e){
-                        e.returnValue = false;
-                        psOpen(slider,param);                    
-                    });
-
-                    if (close_handler){
-                        close_handler.attachEvent('onclick', function(e){
-                            e.returnValue = false;
-                            psClose(slider,param);
-                        });
-                    }
-                }
+//                /*
+//                * Events
+//                * */
+//                var close_handler = (attrs.href) ? document.getElementById(attrs.href.substr(1) + '-close') : null;
+//                if (el[0].addEventListener) {
+//                    el[0].addEventListener('click',function(e){
+//                        e.preventDefault();
+//                        psOpen(slider,param);                    
+//                    });
+//
+//                    if (close_handler){
+//                        close_handler.addEventListener('click', function(e){
+//                            e.preventDefault();
+//                            psClose(slider,param);
+//                        });
+//                    }
+//                } else {
+//                    // IE8 Fallback code
+//                    el[0].attachEvent('onclick',function(e){
+//                        e.returnValue = false;
+//                        psOpen(slider,param);                    
+//                    });
+//
+//                    if (close_handler){
+//                        close_handler.attachEvent('onclick', function(e){
+//                            e.returnValue = false;
+//                            psClose(slider,param);
+//                        });
+//                    }
+//                }
 
             }
         };
     }
 ]);
+
